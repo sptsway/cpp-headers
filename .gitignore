@@ -30,3 +30,9 @@
 *.exe
 *.out
 *.app
+
+# some custom files
+src/example.cpp
+
+# project
+CMakeLists.txt
