@@ -169,7 +169,15 @@ public:
         inserts into tree
     */
     AVLTree* insert(Node *n) {
-        return NULL;
+        if(n==NULL) return this;
+        if(this->node < n) {
+            if(this->left) this->left->insert(n);
+            else this->left = new AVLTree(n, this);
+        }else {
+            if(this->right) this->right->insert(n);
+            else this->right = new AVLTree(n, this);
+        }
+        return rebalance(this);
     }
 
     /*
