@@ -6,8 +6,9 @@ using namespace std;
 */
 class Node {
 public:
-    virtual bool operator==(const Node &n);
-    virtual bool operator<(const Node &n);
+    virtual bool operator==(const Node &n) const =0;
+    virtual bool operator>(const Node &n) const =0;
+    virtual bool operator<(const Node &n) const =0;
 };
 
 /*
@@ -19,17 +20,19 @@ public:
     NodeImpl(int v=0): val(v) {}
     ~NodeImpl() {}
 
-    bool operator==(const NodeImpl &n) {
-        return val == n.val;
+    bool operator==(const Node &n) const override {
+        const NodeImpl* ni = dynamic_cast<const NodeImpl*>(&n);
+        return val == ni->val;
     }
-    bool operator>(const NodeImpl &n) {
-        return val > n.val;
+    bool operator>(const Node &n) const override {
+        const NodeImpl* ni = dynamic_cast<const NodeImpl*>(&n);
+        return val > ni->val;
     }
-    bool operator<(const NodeImpl &n) {
-        return val < n.val;
+    bool operator<(const Node &n) const override {
+        const NodeImpl* ni = dynamic_cast<const NodeImpl*>(&n);
+        return val < ni->val;
     }
 };
-
 
 /*
         node
