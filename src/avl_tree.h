@@ -6,8 +6,10 @@ using namespace std;
 */
 class Node {
 public:
-    virtual bool operator==(const Node &n);
-    virtual bool operator<(const Node &n);
+    virtual bool operator==(const Node &n) const =0;
+    virtual bool operator>(const Node &n) const =0;
+    virtual bool operator<(const Node &n) const =0;
+    virtual string getData() const =0;
 };
 
 /*
@@ -19,17 +21,22 @@ public:
     NodeImpl(int v=0): val(v) {}
     ~NodeImpl() {}
 
-    bool operator==(const NodeImpl &n) {
-        return val == n.val;
+    bool operator==(const Node &n) const override {
+        const NodeImpl* ni = dynamic_cast<const NodeImpl*>(&n);
+        return val == ni->val;
     }
-    bool operator>(const NodeImpl &n) {
-        return val > n.val;
+    bool operator>(const Node &n) const override {
+        const NodeImpl* ni = dynamic_cast<const NodeImpl*>(&n);
+        return val > ni->val;
     }
-    bool operator<(const NodeImpl &n) {
-        return val < n.val;
+    bool operator<(const Node &n) const override {
+        const NodeImpl* ni = dynamic_cast<const NodeImpl*>(&n);
+        return val < ni->val;
+    }
+    string getData() const override {
+        return to_string(val);
     }
 };
-
 
 /*
         node
@@ -145,6 +152,13 @@ private:
         this->parent->reviseHeights();
     }
 
+    void swapNodeData(AVLTree *treeNode) {
+        if (this==NULL || treeNode==NULL) return;
+        Node *swapNodeData = treeNode->node;
+        treeNode->node = this->node;
+        this->node = swapNodeData;
+    }
+
 public:
     AVLTree(Node *node= NULL, AVLTree *par=NULL): node(node), parent(par) {
         this->height = 0;
@@ -170,6 +184,7 @@ public:
     */
     AVLTree* insert(Node *n) {
         if(n==NULL) return this;
+
         if(this->node < n) {
             if(this->left) this->left->insert(n);
             else this->left = new AVLTree(n, this);
@@ -185,6 +200,55 @@ public:
         TODO: decide how to handle duplicates
     */
     AVLTree* remove(Node *n) {
-        return NULL;
+        if(n==NULL) return this;
+
+        if(this->node==n) {
+            // leaf node
+            if(!this->left && !this->right) {
+                if (this->parent && this->parent->left==this) this->parent->left = NULL;
+                else if (this->parent && this->parent->right==this) this->parent->right = NULL;
+                delete this;
+                return NULL;
+            }
+
+            AVLTree *toSwapNode = NULL;
+            if (this->left) toSwapNode = this->left->largest();
+
+            // left subtree is empty
+            if (toSwapNode == NULL) {
+                if (this->parent && this->parent->left==this) this->parent->left = this->right;
+                else if (this->parent && this->parent->right==this) this->parent->right = this->right;
+                this->right->parent = this->parent;
+
+                AVLTree *newRoot = this->right;
+                this->right = NULL;
+                delete this;
+                return newRoot; // no need to rebalance newRoot, as its already rebalanced
+            }
+
+            // swap current and largest of left-subtree, then continue the hunt in left subtree
+            this->swapNodeData(toSwapNode);
+            this->left->remove(n);
+            return rebalance(this);
+        }
+
+        if(this->node < n) {
+            this->left->remove(n);
+        }else {
+            this->right->remove(n);
+        }
+        return rebalance(this);
+    }
+
+    void print() {
+        if (this==NULL) return;
+
+        string leftOut="null", rightOut="null";
+        if (this->left) leftOut= this->left->node->getData();
+        if (this->right) rightOut= this->left->node->getData();
+        cout<<"Node: "<<this->node->getData()<<"; h: "<<height<<", l: "<<leftOut<<", r:"<<rightOut<<"\n";
+
+        this->left->print();
+        this->right->print();
     }
 };
