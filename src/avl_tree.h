@@ -148,6 +148,13 @@ private:
         this->parent->reviseHeights();
     }
 
+    void swapNodeData(AVLTree *treeNode) {
+        if (this==NULL || treeNode==NULL) return;
+        Node *swapNodeData = treeNode->node;
+        treeNode->node = this->node;
+        this->node = swapNodeData;
+    }
+
 public:
     AVLTree(Node *node= NULL, AVLTree *par=NULL): node(node), parent(par) {
         this->height = 0;
@@ -188,6 +195,43 @@ public:
         TODO: decide how to handle duplicates
     */
     AVLTree* remove(Node *n) {
-        return NULL;
+        if(n==NULL) return this;
+
+        if(this->node==n) {
+            // leaf node
+            if(!this->left && !this->right) {
+                if (this->parent && this->parent->left==this) this->parent->left = NULL;
+                else if (this->parent && this->parent->right==this) this->parent->right = NULL;
+                delete this;
+                return NULL;
+            }
+
+            AVLTree *toSwapNode = NULL;
+            if (this->left) toSwapNode = this->left->largest();
+
+            // left subtree is empty
+            if (toSwapNode == NULL) {
+                if (this->parent && this->parent->left==this) this->parent->left = this->right;
+                else if (this->parent && this->parent->right==this) this->parent->right = this->right;
+                this->right->parent = this->parent;
+
+                AVLTree *newRoot = this->right;
+                this->right = NULL;
+                delete this;
+                return newRoot; // no need to rebalance newRoot, as its already rebalanced
+            }
+
+            // swap current and largest of left-subtree, then continue the hunt in left subtree
+            this->swapNodeData(toSwapNode);
+            this->left->remove(n);
+            return rebalance(this);
+        }
+
+        if(this->node < n) {
+            this->left->remove(n);
+        }else {
+            this->right->remove(n);
+        }
+        return rebalance(this);
     }
 };
