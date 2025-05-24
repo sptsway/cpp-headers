@@ -77,8 +77,19 @@ private:
 
         if(abs(l-r)<=1) return root;
 
-        if(l<r) return rotateLeft();
-        return rotateRight();
+        if(l<r) return root->rotateLeft();
+        return root->rotateRight();
+    }
+
+    // rebalanceTillUp rebalances till tillRoot
+    // no return statement as, tillRoot doesnt change
+    void rebalanceTillUp(AVLTree *root, const AVLTree *tillRoot) {
+        AVLTree *itr= root;
+        while (itr != NULL && itr !=tillRoot) {
+            AVLTree *parItr = itr->parent;
+            rebalance(itr);
+            itr = parItr;
+        }
     }
 
     // rotateLeft() rotates the sub-tree 1unit left
@@ -86,16 +97,16 @@ private:
     AVLTree* rotateLeft() {
         if (this->right==NULL) return this;
         AVLTree *newRoot= this->right->smallest();
-        // cout<<"rotateLeft: "<<this->node->getData()<<" - "<<newRoot->node->getData()<<"\n";
 
-        // pick out the newRoot
+        // pick out the newRoot from the tree
         // properties of newRoot: it has no left child.
-        if (newRoot == this->right) this->right = newRoot->right;
+        if (newRoot->parent == this) this->right = newRoot->right;
         else newRoot->parent->left = newRoot->right;
         if (newRoot->right) {
             newRoot->right->parent = newRoot->parent;
         }
         newRoot->parent->reviseHeights();
+        rebalanceTillUp(newRoot->parent, this);
 
         // put newRoot as par of *this
         newRoot->left = this;
@@ -117,9 +128,8 @@ private:
     AVLTree* rotateRight() {
         if (this->left==NULL) return this;
         AVLTree *newRoot= this->left->largest();
-        // cout<<"rotateRight: "<<this->node->getData()<<" - "<<newRoot->node->getData()<<"\n";
 
-        // pick out the newRoot
+        // pick out the newRoot from the tree
         // properties of newRoot: it has no right child.
         if (newRoot == this->left) this->left = newRoot->left;
         else newRoot->parent->right = newRoot->left;
@@ -127,6 +137,7 @@ private:
             newRoot->left->parent = newRoot->parent;
         }
         newRoot->parent->reviseHeights();
+        rebalanceTillUp(newRoot->parent, this);
 
         // put newRoot as par of *this
         newRoot->right = this;
@@ -183,10 +194,9 @@ public:
 
     bool contains(Node *n) {
         if(n==NULL) return false;
-        if(this==NULL) return false;
 
-        if(this->node ==n) return true;
-        if(this->node<n) return this->left->contains(n);
+        if(*this->node == *n) return true;
+        if(*this->node<*n) return this->left->contains(n);
         return this->right->contains(n);
     }
 
@@ -196,8 +206,7 @@ public:
     AVLTree* insert(Node *n) {
         if(n==NULL) return this;
 
-        // cout<<"insert: "<<this->node->getData()<<" - "<<n->getData()<<"\n";
-        if(this->node > n) {
+        if(*this->node > *n) {
             if(this->left) this->left->insert(n);
             else this->left = new AVLTree(n, this);
         }else {
@@ -211,11 +220,12 @@ public:
     /*
         remove node from tree
         TODO: decide how to handle duplicates
+        currently deletes only a single instance
     */
     AVLTree* remove(Node *n) {
         if(n==NULL) return this;
 
-        if(this->node==n) {
+        if(*this->node==*n) {
             // leaf node
             if(!this->left && !this->right) {
                 if (this->parent && this->parent->left==this) this->parent->left = NULL;
@@ -245,7 +255,7 @@ public:
             return rebalance(this);
         }
 
-        if(this->node < n) {
+        if(*this->node < *n) {
             this->right->remove(n);
         }else {
             this->left->remove(n);
@@ -253,14 +263,17 @@ public:
         return rebalance(this);
     }
 
-    void print() {
+    void printTreeNode() {
         string leftOut="null", rightOut="null", parOut="null";
         if (this->left) leftOut= this->left->node->getData();
         if (this->right) rightOut= this->right->node->getData();
         if (this->parent) parOut= this->parent->node->getData();
         cout<<"Node: "<<this->node->getData()<<"; h:"<<height<<", l:"<<leftOut<<", r:"<<rightOut<<", par:"<<parOut<<"\n";
+    }
 
-        if (this->left) this->left->print();
-        if (this->right) this->right->print();
+    void printTree() {
+        printTreeNode();
+        if (this->left) this->left->printTree();
+        if (this->right) this->right->printTree();
     }
 };
