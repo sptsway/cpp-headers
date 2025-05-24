@@ -9,6 +9,7 @@ public:
     virtual bool operator==(const Node &n) const =0;
     virtual bool operator>(const Node &n) const =0;
     virtual bool operator<(const Node &n) const =0;
+    virtual string getData() const =0;
 };
 
 /*
@@ -31,6 +32,9 @@ public:
     bool operator<(const Node &n) const override {
         const NodeImpl* ni = dynamic_cast<const NodeImpl*>(&n);
         return val < ni->val;
+    }
+    string getData() const override {
+        return to_string(val);
     }
 };
 
@@ -180,6 +184,7 @@ public:
     */
     AVLTree* insert(Node *n) {
         if(n==NULL) return this;
+
         if(this->node < n) {
             if(this->left) this->left->insert(n);
             else this->left = new AVLTree(n, this);
@@ -233,5 +238,17 @@ public:
             this->right->remove(n);
         }
         return rebalance(this);
+    }
+
+    void print() {
+        if (this==NULL) return;
+
+        string leftOut="null", rightOut="null";
+        if (this->left) leftOut= this->left->node->getData();
+        if (this->right) rightOut= this->left->node->getData();
+        cout<<"Node: "<<this->node->getData()<<"; h: "<<height<<", l: "<<leftOut<<", r:"<<rightOut<<"\n";
+
+        this->left->print();
+        this->right->print();
     }
 };
