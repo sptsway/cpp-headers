@@ -129,8 +129,6 @@ private:
         if(this->right!=NULL) r=this->right->height;
 
         // if already same
-        cout<<"reviseHeights:"<<this->node->getData()<<", old:"<<height<<", new:"<<max(l,r)+1<<"\n";
-
         if(height == max(l,r)+1) return;
         height = max(l,r)+1;
 
@@ -160,8 +158,12 @@ public:
         if(n==NULL) return false;
 
         if(*this->node == *n) return true;
-        if(*this->node<*n) return this->left->contains(n);
-        return this->right->contains(n);
+        if(*this->node>*n) {
+            if(this->left) return this->left->contains(n);
+        }else {
+            if(this->right) return this->right->contains(n);
+        }
+        return false;
     }
 
     /*
